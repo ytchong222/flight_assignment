@@ -1,0 +1,19 @@
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(testOnly Flight_Assignment_Test, Some(975714f1-0d08-448b-9ba7-d9923985042d), Some(CommandSource(console0)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mEvaluating tasks: Test / testOnly[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0minfo[0m] [0m[0mcompiling 1 Scala source to C:\pyspark\flink_project\Flight_Assignment\target\scala-2.12\test-classes ...[0m
+[0m[[0m[0minfo[0m] [0m[0m[32mFlight_Assignment_Test:[0m[0m
+[0m[[0m[0minfo[0m] [0m[0m[32m- totalFlightsPerMonth[0m[0m
+[0m[[0m[0minfo[0m] [0m[0m[32m- mostFrequentFlyers based on flight count[0m[0m
+[0m[[0m[0minfo[0m] [0m[0m[32m- longestRunWithoutUK should calculate the longest run[0m[0m
+[0m[[0m[0minfo[0m] [0m[0m[32m- flightsTogether should correctly identify pairs of passengers with more than 3 shared flights[0m[0m
+[0m[[0m[0minfo[0m] [0m[0m[32m- flownTogether should find passengers who have flown together more than N times within a date range[0m[0m
+[0m[[0m[0minfo[0m] [0m[0m[36mRun completed in 22 seconds, 146 milliseconds.[0m[0m
+[0m[[0m[0minfo[0m] [0m[0m[36mTotal number of tests run: 5[0m[0m
+[0m[[0m[0minfo[0m] [0m[0m[36mSuites: completed 1, aborted 0[0m[0m
+[0m[[0m[0minfo[0m] [0m[0m[36mTests: succeeded 5, failed 0, canceled 0, ignored 0, pending 0[0m[0m
+[0m[[0m[0minfo[0m] [0m[0m[32mAll tests passed.[0m[0m
+[0m[[0m[32msuccess[0m] [0m[0mTotal time: 24 s, completed Apr 15, 2025 10:51:44 PM[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(shell, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0mForcing garbage collection...[0m
+[0m[[0m[33mwarn[0m] [0m[0mIn the last 270 seconds, 5.18 (1.9%) were spent in GC. [Heap: 0.90GB free of 1.00GB, max 1.00GB] Consider increasing the JVM heap using `-Xmx` or try a different collector, e.g. `-XX:+UseG1GC`, for better performance.[0m
