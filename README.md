@@ -1,79 +1,124 @@
-# flight_assignment
 # Flight Assignment Analysis
 
-This project performs an advanced analysis of flight data to answer specific queries related to flight statistics, passenger patterns, and relationships among passengers. The application is built using "Apache Spark" and powered by "Scala" for distributed data processing and large-scale computation.
+This project performs an advanced analysis of flight data to answer specific queries related to flight statistics.
+The application is built using "Apache Spark" and powered by "Scala" for distributed data processing and large-scale computation.
 
 ---
 
-flight_assignment/
-├── src/
-│   ├── main/scala/
-│   │   └── Flight_Assignment.scala       # Core logic
-│   └── test/scala/
-│       └── Flight_Assignment_Test.scala  # Unit tests
-├── data/
-│   ├── flightData.csv                    # Flight logs
-│   └── passengers.csv                    # Passenger details
-├── lib/                                  # External dependencies
-├── build.sbt                             # SBT configuration
-└── README.md                             # Documentation
+root directory
+    ├── src
+    │   ├── main
+    │   │   ├── scala
+    │   │   │   └── Flight_Assignment.scala    // Main code file
+    │   ├── test
+    │   │   ├── scala
+    │   │   │   └── Flight_Assignment_Test.scala // Unit tests
+    ├── data
+    │   ├── flightData.csv                      // Input flight info logs data
+    │   ├── passengers.csv                      // Input customer info data
+    ├── lib                                    // Dependencies, e.g., Spark
+    ├── build.sbt                              // SBT build file
+	└── README.md                              //Documentation
 
 
 
 ## **Table of Contents**
-1. [Features](#featuresw)
-2. [Prerequisites](#prerequisites)
-3. [Input Data](#input-data)
-4. [How It Works](#how-it-works)
-5. [Setup and Run Instructions](#setup-and-run-instructions)
-6. [Code Overview and ScalaTest Expected Output](#code-overview and output-examples)
+1. [Questions Addressed]
+2. [Setup Instructions]
+3. [Functional Details]
+4. [How It Works]
+5. [Setup and Run Instructions]
+6. [Code Overview and ScalaTest Expected Output]
+7. [Logging and Debugging]
+
+---
+
+### Questions Addressed:
+
+1. Find total number of flights per month.
+2. Find 100 most frequent flyers (frequent passengers).
+3. Find longest number of countries a passenger visited without entering the UK in a sequence.
+4. Find passengers who have been on more than 3 flights together or `N`+ flights together within a date range.
+5. Find passenger Pairs Within Specific Date Ranges
+
+## Setup Instructions
+To run this project, you’ll need the following software:
+
+- **Java 8** or later
+- **Scala 2.12.x**
+- **Apache Spark 2.4.8**
+- **SBT (Scala Build Tool)**
+- **ScalaTest** (`"org.scalatest" %% "scalatest" % "3.2.17" % Test`)
 
 
 ---
 
-## **Features**
+### Getting Started
 
-This application provides the following functionalities:
-1. **Monthly Flight Count**:
-   - Calculates the total number of flights for each month.
-2. **Frequent Flyers**:
-   - Identifies the top 100 passengers who have flown the most.
-3. **Longest Run Without Visiting the UK**:
-   - Finds the greatest number of countries a passenger has visited consecutively without visiting the UK.
-4. **Passenger Pairs Analysis**:
-   - Identifies pairs of passengers who have traveled together on more than 3 flights.
-5. **Passenger Pairs Within Specific Date Ranges**:
-   - Finds passenger pairs who have flown more than a specified number of shared flights within a given date range.
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/ytchong222/flight_assignment.git
+   cd flight_assignment
+   ```
+
+2. Place the required input files (`flightData.csv` and `passengers.csv`) in the `data` directory.
+
+3. Build the project:
+
+   ```bash
+   sbt clean compile
+   ```
+
+4. Run the application:
+
+   ```bash
+   sbt run
+   ```
+
+5. Execute unit tests:
+
+   ```bash
+   sbt testOnly Flight_Assignment_Test
+   ```
+
+   Logs and output will be displayed on the console.
 
 ---
 
-## **Prerequisites**
 
-    1. Java 8 or higher
-    2. Scala 2.12.x
-    3. Apache Spark 2.4.8
-    4. SBT (Scala Build Tool) to manage dependencies and build the project
-    5. ScalaTest sbt-1.10.11
+## Functional Details:
 
----
 
-## **Input Data**
+### Main Workflow
 
-The program requires two CSV files with the following schemas:
+The application consists of the following key components:
 
-### 1. **Flight Data**
-File Path: `data/flightData.csv`
+1. **Input Parsing**:
+   - Reads `flightData.csv` and `passengers.csv` with Spark and validates schemas.
+
+2. **Spark SQL**:
+   - Processes large datasets efficiently for tasks like grouping, filtering, and aggregation.
+
+3. **Functional Pipelines**:
+   - Ensures modular, reusable computations.
+
+
+### Input Data Requirements
+
+**1. Flight Data**  
+Path: `data/flightData.csv`
 
 | Column Name      | Data Type   | Description                                |
 |------------------|-------------|--------------------------------------------|
 | `passengerId`    | Integer     | Unique identifier for the passenger.       |
 | `flightId`       | Integer     | Unique identifier for the flight.          |
-| `from`           | String      | Departure location (airport/country code). |
-| `to`             | String      | Arrival location (airport/country code).   |
+| `from`           | String      | Departure location (e.g., country code).   |
+| `to`             | String      | Arrival location (e.g., country code).     |
 | `date`           | String      | Flight date in `yyyy-MM-dd` format.        |
 
-### 2. **Passenger Data**
-File Path: `data/passengers.csv`
+**2. Passenger Data**  
+Path: `data/passengers.csv`
 
 | Column Name      | Data Type   | Description                                |
 |------------------|-------------|--------------------------------------------|
@@ -81,9 +126,10 @@ File Path: `data/passengers.csv`
 | `firstName`      | String      | First name of the passenger.               |
 | `lastName`       | String      | Last name of the passenger.                |
 
+
 ---
 
-## **How It Works**
+## How It Works
 
 The application processes the provided flight and passenger data as follows:
 
@@ -92,56 +138,36 @@ The application processes the provided flight and passenger data as follows:
    - Validate the input dataframe schema with the expected schema
 
 2. **Calculates Monthly Flights**:
-   - Uses Spark SQL to group flights by month and count the total for each month.
+   - group flights by month and count the total for each month.
 
-3. **Finds Frequent Flyers**:
+3. **Finds the 100 most frequent flyers**:
    - Aggregates the total number of flights for each passenger and joins this result with the passenger details to identify the top 100 passengers.
 
-4. **Analyzes Longest Run Without UK**:
-   - Detects uninterrupted journeys without visiting the UK, groups runs by passengers, and identifies the maximum run length for each passenger.
+4. **Finds the greatest number of countries a passenger has visited without visiting the UK**:
+   - Groups consecutive rows of flight data per passenger using window functions, filters out rows with UK as the destination.
+   - calculates the maximum run length of uninterrupted visits to non-UK countries.
 
-5. **Finds Shared Flights Between Passengers**:
-   - Identifies pairs of passengers who have flown together more than 3 times or within a specified date range.
+5. **Finds pairs of passengers who have been on more than 3 flights together**:
+   - joining the flight data on flightId to find pairs of passengers who were on the same flight
+   - counting how many times each pair traveled together and filtering the results to only include pairs with a count greater than 3.
+   
+6. **Finds pairs of passengers who have been on more than N flights together within a specific date range**:
+   - filtering flights within the given date range, 
+   - joining the data on flightId to find passenger pairs, 
+   - counting how many times each pair traveled together and selecting only the pairs with a count greater than N
 
----
-
-## **Setup and Run Instructions**
-
-Follow the steps below to set up and run the application:
-
-### 1. **Clone the Repository**
-```bash
-git clone <repository-url>
-cd <repository-folder>
-```
-
-### 2. **Prepare Input Data**
-- Place the input CSV files (`flightData.csv` and `passengers.csv`) in the `data/` directory.
-
-### 3. **Compile the Code**
-- Compile the code using SBT:
-```bash
-sbt compile
-```
-
-### 4. **Run the Application**
-- Start the application using:
-```bash
-sbt run
-```
-
-### 5. **View Output**
-- The results will be printed in the console. You can also configure the logging to store results in a file.
 
 ---
 
 
 
-## **Code Overview and ScalaTest Expected Output**
 
-#### 1. `totalFlightsPerMonth`
-Calculates the total number of flights for each month. Groups flights by month extracted from the `date` column.
+## Code Overview and ScalaTest Expected Output
 
+ 1. `totalFlightsPerMonth`
+   **Calculates Monthly Flights**:
+   - group flights by month and count the total for each month.
+   
 sample testing data
 +--------+-----------+----------+-------+------+
 |flightId|passengerId|date      |from   |to    |
@@ -152,7 +178,7 @@ sample testing data
 |F4      |P4         |2025-02-15|Spain  |Italy |
 +--------+-----------+----------+-------+------+
 
-result
+result output
 +-----+-----------------+
 |Month|Number of Flights|
 +-----+-----------------+
@@ -163,7 +189,7 @@ result
 
 ---
 
-#### 2. `findTopFlyersByFlightCount`
+2. `findTopFlyersByFlightCount`
 Finds the top 100 passengers who have flown the most number of flights by joining aggregated flight data with passenger details.
 
 sample flight data
@@ -202,8 +228,11 @@ result output
 
 ---
 
-#### 3. `longestRunWithoutUK`
-Identifies the maximum number of countries visited by passengers without visiting the UK.
+ 3. `longestRunWithoutUK`
+   **Finds the 100 most frequent flyers**:
+   - Aggregates the total number of flights for each passenger and joins this result with the passenger details to identify the top 100 passengers.
+   
+
 sample flight data
 +-----------+----------+---+
 |passengerId|date      |to |
@@ -232,8 +261,11 @@ result output
 
 ---
 
-#### 4. `flightsTogether`
-Finds pairs of passengers who have been on more than 3 flights together. Filters out duplicate pairs and same passengers.
+ 4. `flightsTogether`
+   **Finds pairs of passengers who have been on more than 3 flights together**:
+   - joining the flight data on flightId to find pairs of passengers who were on the same flight
+   - counting how many times each pair traveled together and filtering the results to only include pairs with a count greater than 3.
+   
 sample flight data
 +--------+-----------+
 |flightId|passengerId|
@@ -262,8 +294,11 @@ result output
 
 ---
 
-#### 5. `flownTogether`
-Finds passenger pairs who flew together more than `N` times within a specific date range. Also displays the first and last dates they traveled together.
+ 5. `flownTogether`
+  **Finds pairs of passengers who have been on more than N flights together within a specific date range**:
+   - filtering flights within the given date range, 
+   - joining the data on flightId to find passenger pairs, 
+   - counting how many times each pair traveled together and selecting only the pairs with a count greater than N
 
 sample flight data
 +--------+-----------+----------+----+---+
@@ -293,13 +328,11 @@ result output
 
 ---
 
-## **Logging and Debugging**
+## Logging and Debugging
 
-- Logging is implemented using **Apache Log4j**.
-- Enable log debugging with relevant information like showing intermediate DataFrame output using `log.info()`.
+- Logging is enabled via **Apache Log4j**.
+- Use `log.info()` for inspecting outputs and debugging key steps.
 
 ---
 
-Download link
-git clone https://github.com/ytchong222/flight_assignment
 
