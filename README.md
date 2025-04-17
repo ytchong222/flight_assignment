@@ -15,10 +15,10 @@ The application is built using "Apache Spark" and powered by "Scala" for distrib
     │   │   │   └── Flight_Assignment_Test.scala // Unit tests
     ├── data
     │   ├── flightData.csv                      // Input flight info logs data
-    │   ├── passengers.csv                      // Input customer info data
-    ├── lib                                    // Dependencies, e.g., Spark
-    ├── build.sbt                              // SBT build file
-	└── README.md                              //Documentation
+    │   └── passengers.csv                      // Input customer info data
+	├── .gitignore                              // .gitignore file
+    ├── build.sbt                               // SBT build file
+	└── README.md                               //Documentation
 
 
 
