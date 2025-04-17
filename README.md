@@ -9,7 +9,8 @@ The application is built using "Apache Spark" and powered by "Scala" for distrib
     ├── src
     │   ├── main
     │   │   ├── scala
-    │   │   │   └── Flight_Assignment.scala    // Main code file
+    │   │   │   └── org.tc    
+	│   │   │          └──Flight_Assignment     // Main code file
     │   ├── test
     │   │   ├── scala
     │   │   │   └── Flight_Assignment_Test.scala // Unit tests
@@ -148,7 +149,7 @@ The application processes the provided flight and passenger data as follows:
    - calculates the maximum run length of uninterrupted visits to non-UK countries.
 
 5. **Finds pairs of passengers who have been on more than 3 flights together**:
-   - joining the flight data on flightId to find pairs of passengers who were on the same flight
+   - joining the flight data on flightId and date to find pairs of passengers who were on the same flight
    - counting how many times each pair traveled together and filtering the results to only include pairs with a count greater than 3.
    
 6. **Finds pairs of passengers who have been on more than N flights together within a specific date range**:
@@ -168,32 +169,33 @@ The application processes the provided flight and passenger data as follows:
    **Calculates Monthly Flights**:
    - group flights by month and count the total for each month.
    
-sample testing data
-+--------+-----------+----------+-------+------+
-|flightId|passengerId|date      |from   |to    |
-+--------+-----------+----------+-------+------+
-|F1      |P1         |2025-01-01|US     |UK    |
-|F2      |P2         |2025-01-15|UK     |France|
-|F3      |P3         |2025-02-01|Germany|Spain |
-|F4      |P4         |2025-02-15|Spain  |Italy |
-+--------+-----------+----------+-------+------+
+=== sample input data ===
++-------------+----------+----------+-------+------------+
+| passengerId | flightId |   from   |   to  |    date    |
++-------------+----------+----------+-------+------------+
+|           1 |      101 |       US |    UK | 2025-01-01 |
+|           2 |      102 |       UK | France| 2025-01-15 |
+|           3 |      103 |   Germany|  Spain| 2025-02-01 |
+|           4 |      104 |    Spain |  Italy| 2025-02-15 |
++-------------+----------+----------+-------+------------+
 
 ---
-result output
-+-----+-----------------+
-|Month|Number of Flights|
-+-----+-----------------+
-|1    |2                |
-|2    |2                |
-+-----+-----------------+
 
-expected output
-+-----+-----------------+
-|Month|Number of Flights|
-+-----+-----------------+
-|1    |2                |
-|2    |2                |
-+-----+-----------------+
+=== Result Dataset ===
++-------+-------------------+
+| Month | Number of Flights |
++-------+-------------------+
+|     1 |                 2 |  // January
+|     2 |                 2 |  // February
++-------+-------------------+
+
+=== Expected Dataset ===
++-------+-------------------+
+| Month | Number of Flights |
++-------+-------------------+
+|     1 |                 2 |  // January
+|     2 |                 2 |  // February
++-------+-------------------+
 
 **testing result:Matched**
 ---
@@ -201,47 +203,47 @@ expected output
 2. `findTopFlyersByFlightCount`
 Finds the top 100 passengers who have flown the most number of flights by joining aggregated flight data with passenger details.
 
-sample flight data
-+--------+-----------+
-|flightId|passengerId|
-+--------+-----------+
-|F1      |P1         |
-|F2      |P2         |
-|F3      |P1         |
-|F4      |P3         |
-|F5      |P1         |
-|F6      |P2         |
-+--------+-----------+
+=== sample flight data ===
++-------------+----------+------+----+------------+
+| passengerId | flightId | from | to |    date    |
++-------------+----------+------+----+------------+
+|           1 |      100 |   US | UK | 2025-01-01 |
+|           2 |      200 |   CA | UK | 2025-01-02 |
+|           1 |      300 |   FR | UK | 2025-01-03 |
+|           3 |      400 |   IT | UK | 2025-01-04 |
+|           1 |      500 |   IT | UK | 2025-01-05 |
+|           2 |      500 |   US | UK | 2025-01-06 |
++-------------+----------+------+----+------------+
 
-sample passenger data
-+-----------+---------+--------+
-|passengerId|firstName|lastName|
-+-----------+---------+--------+
-|P1         |Jack     |Lee     |
-|P2         |Kent     |Tan     |
-|P3         |Andrew   |Wong    |
-|P4         |Larry    |Chew    |
-+-----------+---------+--------+
+=== sample passenger data ===
++-------------+-----------+----------+
+| passengerId | firstName | lastName |
++-------------+-----------+----------+
+|           1 |      Jack |      Lee |
+|           2 |      Kent |      Tan |
+|           3 |    Andrew |     Wong |
+|           4 |     Larry |     Chew |
++-------------+-----------+----------+
 
 ---
 
-result output
-+-----------+-----------------+---------+--------+
-|Passenger Id|Number of Flights|First name|Last name|
-+-----------+-------------------+---------+--------+
-|P1         |3                 |Jack      |Lee     |
-|P2         |2                 |Kent      |Tan     |
-|P3         |1                 |Andrew    |Wong    |
-+-----------+------------------+----------+--------+
+=== Result Dataset ===
++--------------+-------------------+------------+-----------+
+| Passenger ID | Number of Flights | First name | Last name |
++--------------+-------------------+------------+-----------+
+|            1 |                 3 |       Jack |       Lee |
+|            2 |                 2 |       Kent |       Tan |
+|            3 |                 1 |     Andrew |      Wong |
++--------------+-------------------+------------+-----------+
 
-expected output
-+-----------+-----------------+---------+--------+
-|Passenger Id|Number of Flights|First name|Last name|
-+-----------+-------------------+---------+--------+
-|P1         |3                 |Jack      |Lee     |
-|P2         |2                 |Kent      |Tan     |
-|P3         |1                 |Andrew    |Wong    |
-+-----------+------------------+----------+--------+
+=== Expected Dataset ===
++--------------+-------------------+------------+-----------+
+| Passenger ID | Number of Flights | First name | Last name |
++--------------+-------------------+------------+-----------+
+|            1 |                 3 |       Jack |       Lee |
+|            2 |                 2 |       Kent |       Tan |
+|            3 |                 1 |     Andrew |      Wong |
++--------------+-------------------+------------+-----------+
 
 **testing result:Matched**
 
@@ -252,7 +254,7 @@ expected output
    - Aggregates the total number of flights for each passenger and joins this result with the passenger details to identify the top 100 passengers.
    
 
-sample flight data
+=== sample flight data ===
 +-----------+----------+---+
 |passengerId|date      |to |
 +-----------+----------+---+
@@ -268,23 +270,37 @@ sample flight data
 |P2         |2025-01-04|MY |
 +-----------+----------+---+
 
+===sample passenger data ===
++-----------+--------+----------+---+----+
+|passengerId|flightId|from      |to |date|
++-----------+--------+----------+---+----+
+|1          |100     |2023-01-01|US |MY  |
+|1          |101     |2023-01-02|JP |TH  |
+|1          |102     |2023-01-03|JP |UK  |
+|1          |103     |2023-01-04|JP |MY  |
+|1          |104     |2023-01-05|ID |TH  |
+|2          |105     |2023-01-01|SG |US  |
+|2          |106     |2023-01-02|HK |UK  |
+|2          |107     |2023-01-03|FR |TH  |
+|2          |108     |2023-01-04|IT |MY  |
++-----------+--------+----------+---+----+
 ---
 
-result output
-+------------+-----------+
-|Passenger Id|Longest Run|
-+------------+-----------+
-|P1          |2          |
-|P2          |2          |
-+------------+-----------+
+=== Result Dataset ===
++-------------+-------------+
+| passengerId | Longest run |
++-------------+-------------+
+|           1 |           2 |  
+|           2 |           2 |
++-------------+-------------+
 
-expected output
-+------------+-----------+
-|Passenger Id|Longest Run|
-+------------+-----------+
-|P1          |2          |
-|P2          |2          |
-+------------+-----------+
+=== Expected Dataset ===
++-------------+-------------+
+| passengerId | Longest run |
++-------------+-------------+
+|           1 |           2 |  
+|           2 |           2 |
++-------------+-------------+
 
 **testing result:Matched**
 ---
@@ -294,39 +310,43 @@ expected output
    - joining the flight data on flightId to find pairs of passengers who were on the same flight
    - counting how many times each pair traveled together and filtering the results to only include pairs with a count greater than 3.
    
-sample flight data
-+--------+-----------+
-|flightId|passengerId|
-+--------+-----------+
-|F1      |P1         |
-|F1      |P2         |
-|F1      |P3         |
-|F2      |P1         |
-|F2      |P2         |
-|F3      |P1         |
-|F3      |P2         |
-|F3      |P3         |
-|F4      |P1         |
-|F4      |P2         |
-+--------+-----------+
+===sample flight data===
++-------------+----------+------+----+------------+
+| passengerId | flightId | from | to |    date    |
++-------------+----------+------+----+------------+
+|           1 |      100 |   HK | JP | 2025-01-01 |
+|           2 |      100 |   HK | JP | 2025-01-01 |
+|           1 |      200 |   UK | US | 2025-01-02 |
+|           2 |      200 |   UK | US | 2025-01-02 |
+|           1 |      300 |   CA | FR | 2025-01-03 |
+|           2 |      300 |   CA | FR | 2025-01-03 |
+|           1 |      400 |   FR | US | 2025-01-04 |
+|           2 |      400 |   FR | US | 2025-01-04 |
+|           3 |      500 |   JP | CN | 2025-02-01 |
+|           4 |      500 |   JP | CN | 2025-02-01 |
+|           3 |      600 |   IN | AU | 2025-02-02 |
+|           4 |      600 |   IN | AU | 2025-02-02 |
++-------------+----------+------+----+------------+
 
-**testing result:Matched**
+
 ---
 
 
-result output
-+--------------+--------------+--------------------------+
-|Passenger 1 ID|Passenger 2 ID|Number of Flights Together|
-+--------------+--------------+--------------------------+
-|P1            |P2            |4                         |
-+--------------+--------------+--------------------------+
+ 
+=== Result Dataset ===
++-------------+-------------+----------------------------+
+| Passenger 1 | Passenger 2 | Number of flights together |
++-------------+-------------+----------------------------+
+|           1 |           2 |                          4 |
++-------------+-------------+----------------------------+
 
-expected output
-+--------------+--------------+--------------------------+
-|Passenger 1 ID|Passenger 2 ID|Number of Flights Together|
-+--------------+--------------+--------------------------+
-|P1            |P2            |4                         |
-+--------------+--------------+--------------------------+
+
+=== Expected Dataset ===
++-------------+-------------+----------------------------+
+| Passenger 1 | Passenger 2 | Number of flights together |
++-------------+-------------+----------------------------+
+|           1 |           2 |                          4 |
++-------------+-------------+----------------------------+
 
 **testing result:Matched**
 ---
@@ -338,36 +358,36 @@ expected output
    - counting how many times each pair traveled together and selecting only the pairs with a count greater than N
 
 sample flight data
-+--------+-----------+----------+----+---+
-|flightId|passengerId|date      |from|to |
-+--------+-----------+----------+----+---+
-|F1      |P1         |2025-01-01|HK  |ID |
-|F1      |P2         |2025-01-01|HK  |ID |
-|F2      |P1         |2025-01-02|TW  |ID |
-|F2      |P2         |2025-01-02|TW  |ID |
-|F3      |P1         |2025-01-03|TH  |SG |
-|F3      |P2         |2025-01-03|TH  |SG |
-|F4      |P1         |2025-01-04|TH  |US |
-|F4      |P2         |2025-01-04|TH  |US |
-|F5      |P3         |2025-01-05|HK  |SG |
-|F6      |P4         |2025-01-06|HK  |US |
-+--------+-----------+----------+----+---+
++-------------+----------+------+----+------------+
+| passengerId | flightId | from | to |    date    |
++-------------+----------+------+----+------------+
+|           1 |        1 |   HK | ID | 2025-01-01 |
+|           2 |        1 |   HK | ID | 2025-01-01 |
+|           1 |        2 |   TW | ID | 2025-01-02 |
+|           2 |        2 |   TW | ID | 2025-01-02 |
+|           1 |        3 |   TH | SG | 2025-01-03 |
+|           2 |        3 |   TH | SG | 2025-01-03 |
+|           1 |        4 |   TH | US | 2025-01-04 |
+|           2 |        4 |   TH | US | 2025-01-04 |
+|           3 |        5 |   HK | SG | 2025-01-05 |
+|           4 |        6 |   HK | US | 2025-01-06 |
++-------------+----------+------+----+------------+
 
 ---
+=== Result Dataset ===
++-----------------+-----------------+----------------------------+------------+------------+
+| Passenger 1 ID  | Passenger 2 ID  | Number of flights together |    From    |     To     |
++-----------------+-----------------+----------------------------+------------+------------+
+|               1 |               2 |                          4 | 2025-01-01 | 2025-01-04 |
++-----------------+-----------------+----------------------------+------------+------------+
 
-result output
-+--------------+--------------+--------------------------+----------+----------+
-|Passenger 1 ID|Passenger 2 ID|Number of Flights Together|From      |To        |
-+--------------+--------------+--------------------------+----------+----------+
-|P1            |P2            |4                         |2025-01-01|2025-01-04|
-+--------------+--------------+--------------------------+----------+----------+
+=== Expected Dataset ===
++-----------------+-----------------+----------------------------+------------+------------+
+| Passenger 1 ID  | Passenger 2 ID  | Number of flights together |    From    |     To     |
++-----------------+-----------------+----------------------------+------------+------------+
+|               1 |               2 |                          4 | 2025-01-01 | 2025-01-04 |
++-----------------+-----------------+----------------------------+------------+------------+
 
-expected output
-+--------------+--------------+--------------------------+----------+----------+
-|Passenger 1 ID|Passenger 2 ID|Number of Flights Together|From      |To        |
-+--------------+--------------+--------------------------+----------+----------+
-|P1            |P2            |4                         |2025-01-01|2025-01-04|
-+--------------+--------------+--------------------------+----------+----------+
 
 
 **testing result:Matched**
