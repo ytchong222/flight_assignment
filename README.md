@@ -178,6 +178,7 @@ sample testing data
 |F4      |P4         |2025-02-15|Spain  |Italy |
 +--------+-----------+----------+-------+------+
 
+---
 result output
 +-----+-----------------+
 |Month|Number of Flights|
@@ -186,7 +187,15 @@ result output
 |2    |2                |
 +-----+-----------------+
 
+expected output
++-----+-----------------+
+|Month|Number of Flights|
++-----+-----------------+
+|1    |2                |
+|2    |2                |
++-----+-----------------+
 
+**testing result:Matched**
 ---
 
 2. `findTopFlyersByFlightCount`
@@ -225,6 +234,16 @@ result output
 |P3         |1                 |Andrew    |Wong    |
 +-----------+------------------+----------+--------+
 
+expected output
++-----------+-----------------+---------+--------+
+|Passenger Id|Number of Flights|First name|Last name|
++-----------+-------------------+---------+--------+
+|P1         |3                 |Jack      |Lee     |
+|P2         |2                 |Kent      |Tan     |
+|P3         |1                 |Andrew    |Wong    |
++-----------+------------------+----------+--------+
+
+**testing result:Matched**
 
 ---
 
@@ -259,6 +278,15 @@ result output
 |P2          |2          |
 +------------+-----------+
 
+expected output
++------------+-----------+
+|Passenger Id|Longest Run|
++------------+-----------+
+|P1          |2          |
+|P2          |2          |
++------------+-----------+
+
+**testing result:Matched**
 ---
 
  4. `flightsTogether`
@@ -282,6 +310,7 @@ sample flight data
 |F4      |P2         |
 +--------+-----------+
 
+**testing result:Matched**
 ---
 
 
@@ -292,6 +321,14 @@ result output
 |P1            |P2            |4                         |
 +--------------+--------------+--------------------------+
 
+expected output
++--------------+--------------+--------------------------+
+|Passenger 1 ID|Passenger 2 ID|Number of Flights Together|
++--------------+--------------+--------------------------+
+|P1            |P2            |4                         |
++--------------+--------------+--------------------------+
+
+**testing result:Matched**
 ---
 
  5. `flownTogether`
@@ -325,7 +362,15 @@ result output
 |P1            |P2            |4                         |2025-01-01|2025-01-04|
 +--------------+--------------+--------------------------+----------+----------+
 
+expected output
++--------------+--------------+--------------------------+----------+----------+
+|Passenger 1 ID|Passenger 2 ID|Number of Flights Together|From      |To        |
++--------------+--------------+--------------------------+----------+----------+
+|P1            |P2            |4                         |2025-01-01|2025-01-04|
++--------------+--------------+--------------------------+----------+----------+
 
+
+**testing result:Matched**
 ---
 
 ## Logging and Debugging
