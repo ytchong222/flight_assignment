@@ -196,7 +196,7 @@ object Flight_Assignment {
     import flights.sparkSession.implicits._
 
     // Step 1: Select only necessary columns and repartition by `flightId`
-    val selectedColumns = flights.select("flightId", "passengerId","date").repartition($"flightId")
+    val selectedColumns = flights.select("flightId", "passengerId","date").repartition(col("flightId"))
 
     // Step 2: Join the data on `flightId`, creating passenger pairs
     val passengerPairs = selectedColumns
@@ -254,9 +254,9 @@ object Flight_Assignment {
 
     // Step 1:
     val filteredFlights = flights
-      .filter($"date".between(from, to)) // Filter rows for the specified date range
+      .filter(col("date").between(from, to)) // Filter rows for the specified date range
       .select("flightId", "passengerId", "date") // Select only relevant columns
-      .repartition($"flightId") // Repartition by `flightId` for optimized join performance
+      .repartition(col("flightId")) // Repartition by `flightId` for optimized join performance
 
     // Step 2:
     val passengerPairs = filteredFlights
@@ -276,11 +276,11 @@ object Flight_Assignment {
         col("df2.Passenger2Id").as("Passenger 2 ID")
       )
       .agg(
-        count($"df1.flightId").as("Number of Flights Together"), // Count the number of flights together
-        min($"df1.date").as("From"), // Earliest date of the flights together
-        max($"df1.date").as("To") // Latest date of the flights together
+        count(col("df1.flightId")).as("Number of Flights Together"), // Count the number of flights together
+        min(col("df1.date")).as("From"), // Earliest date of the flights together
+        max(col("df1.date")).as("To") // Latest date of the flights together
       )
-      .filter($"Number of Flights Together" > atLeastNTimes) // Filter pairs flying together more than the threshold
+      .filter(col("Number of Flights Together") > atLeastNTimes) // Filter pairs flying together more than the threshold
 
     // Step 4-5:
     groupedPairs
