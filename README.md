@@ -5,24 +5,23 @@ This project performs an advanced analysis of flight data to answer specific que
 
 ---
 
-root directory
-    ├── src
-    │   ├── main
-    │   │   ├── scala
-    │   │   │   └── Flight_Assignment.scala    // Main code file
-    │   ├── test
-    │   │   ├── scala
-    │   │   │   └── Flight_Assignment_Test.scala // Unit tests
-    ├── data
-    │   ├── flightData.csv                      // Input flight info logs data
-    │   ├── passengers.csv                      // Input customer info data
-    ├── lib                                    // Dependencies, e.g., Spark
-    ├── build.sbt                              // SBT build file
+flight_assignment/
+├── src/
+│   ├── main/scala/
+│   │   └── Flight_Assignment.scala       # Core logic
+│   └── test/scala/
+│       └── Flight_Assignment_Test.scala  # Unit tests
+├── data/
+│   ├── flightData.csv                    # Flight logs
+│   └── passengers.csv                    # Passenger details
+├── lib/                                  # External dependencies
+├── build.sbt                             # SBT configuration
+└── README.md                             # Documentation
 
 
 
 ## **Table of Contents**
-1. [Features](#features)
+1. [Features](#featuresw)
 2. [Prerequisites](#prerequisites)
 3. [Input Data](#input-data)
 4. [How It Works](#how-it-works)
