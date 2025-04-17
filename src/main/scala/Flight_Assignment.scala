@@ -306,9 +306,9 @@ object Flight_Assignment {
     val flightDataPath = "data/flightData.csv"
     val passengersPath = "data/passengers.csv"
 
-    // Read data
-    val flightData = readCSV(flightDataPath, flightDataSchema).cache()
-    val passengers = readCSV(passengersPath, passengerSchema).cache()
+    // Read data and avoid recomputation and allow spilling to disk if memory is limited
+    val flightData = readCSV(flightDataPath, flightDataSchema).persist()
+    val passengers = readCSV(passengersPath, passengerSchema).persist()
 
     // Debug source file
 //    log.info(s"Number of rows in flightData: ${flightData.count()}")
@@ -338,5 +338,9 @@ object Flight_Assignment {
     val toDate = Date.valueOf("2017-12-31")
     log.info("Passengers on More Than N Flights Together Within Date Range:")
     flownTogether(flightData, atLeastNTimes = 3, fromDate, toDate).show()
+
+    // free up the memory after use
+    flightData.unpersist()
+    passengers.unpersist()
   }
 }
