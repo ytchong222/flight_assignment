@@ -1,12 +1,11 @@
-<<<<<<< HEAD
-# Flight Assignment Analysis
+# Flight Assignment
 
 This project performs an advanced analysis of flight data to answer specific queries related to flight statistics.
 The application is built using "Apache Spark" and powered by "Scala" for distributed data processing and large-scale computation.
 
 ---
 
-root directory
+/flight_assignment
     ├── src
     │   ├── main
     │   │   ├── scala
@@ -675,5 +674,3 @@ result output
 
 ---
 
-
->>>>>>> ecf3c18dd607f8c71b6bd372c164a9546266f887
