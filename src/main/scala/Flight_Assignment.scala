@@ -242,7 +242,8 @@ object Flight_Assignment {
    *         Step 1: filter flights within the date range and repartition and for better self-join performance
    *         Step 2: separate the logic and Perform the self-join to identify passenger pairs
    *         Step 3: group by passenger pairs and perform aggregations
-   *         Step 4: format and order the results(Passenger 1 ID,Passenger 2 ID,Number of Flights Together,From,To)
+   *         Step 4: format and order the results column (Passenger 1 ID,Passenger 2 ID,Number of Flights Together,From,To)
+   *         step 5: order by "From" and "To" in ascending order
    */
   def flownTogether(flightData: DataFrame, atLeastNTimes: Int, from: Date, to: Date)(implicit spark: SparkSession): DataFrame = {
     // Step 1: filter flights within the date range
@@ -295,7 +296,7 @@ object Flight_Assignment {
         date_format(col("From"), "yyyy-MM-dd").as("From"),// Date format 'yyyy-mm-dd'
         date_format(col("To"), "yyyy-MM-dd").as("To")     // Date format 'yyyy-mm-dd'
       )//select the column order to display
-      .orderBy(asc("From"), asc("To")) // Sort by the "From 1 ID","to 2 ID" in ascending order
+      .orderBy(asc("From"), asc("To")) // Sort by the "From","to" in ascending order
 
   }
 
