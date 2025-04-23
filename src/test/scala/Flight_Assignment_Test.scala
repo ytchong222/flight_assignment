@@ -23,22 +23,29 @@ class Flight_Assignment_Test extends AnyFunSuite {
 
   test("totalFlightsPerMonth should calculate the total number of flights per month") {
     println("=== start DataSet ===")
-    val sampleFlights: Dataset[FlightData] = Seq(
+    val sampleFlights: Seq[FlightData] = Seq(
       FlightData(1, 101, "US", "UK", "2025-01-01"),
+      FlightData(6, 101, "US", "UK", "2025-01-01"),
       FlightData(2, 102, "UK", "France", "2025-01-15"),
       FlightData(3, 103, "Germany", "Spain", "2025-02-01"),
       FlightData(4, 104, "Spain", "Italy", "2025-02-15")
-    ).toDS()
+    )
+    val result: Seq[MonthlyFlights] = Flight_Assignment.totalFlightsPerMonth(sampleFlights)
 
-    val result: Dataset[MonthlyFlights] = Flight_Assignment.totalFlightsPerMonth(sampleFlights)
+   // val result: Dataset[MonthlyFlights] = Flight_Assignment.totalFlightsPerMonth(sampleFlights)
     println("=== start2 DataSet ===")
-    val expected = Seq(
+    val expected: Seq[MonthlyFlights] = Seq(
       MonthlyFlights(1, 2), // January
       MonthlyFlights(2, 2)  // February
-    ).toDS()
-     println("=== result DataSet ===")
-    result.show(truncate = false)
-    assert(result.collect().toSet == expected.collect().toSet)
+    )
+    // Debug Result
+//    println("=== Result Data ===")
+//    result.foreach(flight =>
+//      println(s"Month: ${flight.`Month`}, Number of Flights: ${flight.`Number of Flights`}")
+//    )
+
+    assert(result.toSet == expected.toSet)
+    println("=== End Test ===")
   }
 
 //
@@ -82,39 +89,40 @@ class Flight_Assignment_Test extends AnyFunSuite {
 
   test("longestRunWithoutUK should calculate the correct longest run for each passenger") {
     // Define test flight data
-    val flightData: Dataset[FlightData] = Seq(
-      FlightData(1, 100, "US", "MY","2023-01-01"),  // Passenger 1, date, flight to Malaysia
-      FlightData(1, 101, "JP", "TH","2023-01-02"),  // Passenger 1, date, flight to Thailand
-      FlightData(1, 102, "JP", "UK","2023-01-03"),  // Passenger 1, date, flight to the UK (resets here)
-      FlightData(1, 103, "JP", "MY","2023-01-04"),  // Passenger 1, date, flight to Malaysia
-      FlightData(1, 104, "ID", "TH","2023-01-05"),  // Passenger 1, date, flight to Thailand
-      FlightData(2, 105, "SG",  "US","2023-01-01"),  // Passenger 2, date, flight to the US
-      FlightData(2, 106, "HK", "UK","2023-01-02"),  // Passenger 2, date, flight to the UK (resets here)
-      FlightData(2, 107, "FR", "TH","2023-01-03"),  // Passenger 2, date, flight to Thailand
-      FlightData(2, 108, "IT", "MY","2023-01-04")   // Passenger 2, date, flight to Malaysia
-    ).toDS()
+    val flightData: Seq[FlightData] = Seq(
+
+//      FlightData(4943,112,	"us",	"fr",	"2/9/2017"),
+//      FlightData(4943,126,	"fr",	"ir",	"2/9/2017")
+
+      FlightData(1, 100, "UK", "FR", "1/1/2023"),  // Passenger 1, country UK (resets 0), FR 1
+      FlightData(1, 101, "US", "CN", "1/2/2023"),  // Passenger 1, country US  2,CN 3
+      FlightData(1, 102, "UK", "DE", "1/3/2023"),  // Passenger 1, country UK (resets 0),DE 1
+      FlightData(1, 103, "UK", "CN", "1/4/2023"),  // Passenger 1, country  UK (resets 0),CN 1
+      FlightData(2, 105, "SG", "US", "1/1/2023"), // Passenger 2,  country US  1,CN 2
+      FlightData(2, 106, "HK", "UK", "1/2/2023"),  // Passenger 2, country to HK 3, UK   (resets 0)
+      FlightData(2, 107, "FR", "TH", "1/3/2023"),  // Passenger 2, country to FR   1, TH 2
+      FlightData(2, 108, "IT", "MY", "1/4/2023")   // Passenger 2, country to IT   3, MY 4
+    )
 
     // Define expected output
-    val expectedOutput: Dataset[LongestRunResult] = Seq(
-      LongestRunResult(1, 2), // P1's longest run without UK is 2 (either "MY", "TH" before UK or "MY", "TH" after UK)
-      LongestRunResult(2, 2)  // P2's longest run without UK is 2 ("TH", "MY")
-    ).toDS()
+    val expectedOutput: Seq[LongestRunResult] = Seq(
+      LongestRunResult(2, 4),  // P2's longest run without UK  ("FR", "TH","IT","MY") 4
+      LongestRunResult(1, 3) // P1's longest run without UK  (FR,US,CN) 3
+
+    )
 
     // Call the function under test
-    val result: Dataset[LongestRunResult] = Flight_Assignment.longestRunWithoutUK(flightData)
+    val result: Seq[LongestRunResult] = Flight_Assignment.longestRunWithoutUK(flightData)
 
-    // Debugging: Print schemas and data for verification
-    println("=== Flight Data ===")
-    flightData.show(truncate = false)
 
-    println("=== Expected Output ===")
-    expectedOutput.show(truncate = false)
+    // Debugging
+      println("=== Result Data ===")
+      result.foreach(flight =>
+        println(s"Passenger: ${flight.`Passenger ID`}, Number of Flights: ${flight.`Longest Run`}")
+      )
 
-    println("=== Result Output ===")
-    result.show(truncate = false)
-    println("=== End Output ===")
-    // Validate the result
-    assert(result.collect().toSet == expectedOutput.collect().toSet)
+    assert(result.toSet == expectedOutput.toSet)
+//    println("=== End Test ===")
   }
 
   test("flightsTogether should correctly identify pairs of passengers with more than 3 shared flights") {
@@ -141,12 +149,14 @@ class Flight_Assignment_Test extends AnyFunSuite {
       FlightsTogetherResult(1, 2, 4)
     ).toDS
 
+
+
     val result: Dataset[FlightsTogetherResult]  = Flight_Assignment.flightsTogether(flightData)
     // Debugging outputs to verify schemas and values
 //      println("=== source DataFrame ===")
 //      flightData.show(false)
-      println("=== Result DataFrame ===")
-       result.show(false)
+       println("=== Result DataFrame ===")
+        result.show(false)
     //   result.printSchema()
         println("=== Expected DataFrame ===")
         expectedOutput.show(false)

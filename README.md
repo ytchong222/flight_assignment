@@ -15,6 +15,16 @@ The application is built using "Apache Spark" and powered by "Scala" for distrib
     │   │   ├── scala
     │   │   │   └── Flight_Assignment_Test.scala // Unit tests
     ├── data
+	│   │ └─ output   
+    │   │        ├──Q1_totalFlights               //output csv file save
+	│   │        ├──Q2_frequentFlyers             //output csv file save
+	│   │        ├──Q3_longestRun                 //output csv file save
+	│   │        ├──Q4_flightsTogether            //output csv file save
+	│   │        └──Extra_flightsTogetherInRange  //output csv file save
+	│   │
+	│   │
+	│   │
+    │   │
     │   ├── flightData.csv                      // Input flight info logs data
     │   └── passengers.csv                      // Input customer info data
 	├── .gitignore                              // .gitignore file
@@ -167,13 +177,14 @@ The application processes the provided flight and passenger data as follows:
 
  1. `totalFlightsPerMonth`
    **Calculates Monthly Flights**:
-   - group flights by month and count the total for each month.
+   - *group flightId and  month* and count the total *distinct flightId* for each month.
    
 === sample input data ===
 +-------------+----------+----------+-------+------------+
 | passengerId | flightId |   from   |   to  |    date    |
 +-------------+----------+----------+-------+------------+
 |           1 |      101 |       US |    UK | 2025-01-01 |
+|           6 |      101 |       US |    UK | 2025-01-01 |
 |           2 |      102 |       UK | France| 2025-01-15 |
 |           3 |      103 |   Germany|  Spain| 2025-02-01 |
 |           4 |      104 |    Spain |  Italy| 2025-02-15 |
@@ -181,21 +192,13 @@ The application processes the provided flight and passenger data as follows:
 
 ---
 
-=== Result Dataset ===
-+-------+-------------------+
-| Month | Number of Flights |
-+-------+-------------------+
-|     1 |                 2 |  // January
-|     2 |                 2 |  // February
-+-------+-------------------+
+=== Result Data ===
+Month: 1, Number of Flights: 2
+Month: 2, Number of Flights: 2
 
-=== Expected Dataset ===
-+-------+-------------------+
-| Month | Number of Flights |
-+-------+-------------------+
-|     1 |                 2 |  // January
-|     2 |                 2 |  // February
-+-------+-------------------+
+=== Expected Data ===
+Month: 1, Number of Flights: 2
+Month: 2, Number of Flights: 2
 
 **testing result:Matched**
 ---
@@ -249,58 +252,66 @@ Finds the top 100 passengers who have flown the most number of flights by joinin
 
 ---
 
- 3. `longestRunWithoutUK`
-   **Finds the 100 most frequent flyers**:
-   - Aggregates the total number of flights for each passenger and joins this result with the passenger details to identify the top 100 passengers.
-   
+4. **Finds the greatest number of countries a passenger has visited without visiting the UK**:
+     -Select only the relevant columns and combine(from and to) into one column
+     -order by passengerId and date
+     -Group by passengerId
+     - calculate longest run excluding UK and no duplicate consecutive countries
+                    -if country =UK reset to 0 and assign prevCountry to UK
+                    -if current country = previous country do no nothing
+                    -if <> UK and <> prevoius country increment 1,get the max count from maxRun/currentRun,
+                       assign previous country to current country
+    - return passengerId and the maxrun count
 
-=== sample flight data ===
-+-----------+----------+---+
-|passengerId|date      |to |
-+-----------+----------+---+
-|P1         |2025-01-01|MY |
-|P1         |2025-01-02|TH |
-|P1         |2025-01-03|UK |
-|P1         |2025-01-04|ID |
-|P1         |2025-01-05|SG |
-|P1         |2025-01-06|UK |
-|P2         |2025-01-01|US |
-|P2         |2025-01-02|TH |
-|P2         |2025-01-03|UK |
-|P2         |2025-01-04|MY |
-+-----------+----------+---+
 
-===sample passenger data ===
-+-----------+--------+----------+---+----+
-|passengerId|flightId|from      |to |date|
-+-----------+--------+----------+---+----+
-|1          |100     |2023-01-01|US |MY  |
-|1          |101     |2023-01-02|JP |TH  |
-|1          |102     |2023-01-03|JP |UK  |
-|1          |103     |2023-01-04|JP |MY  |
-|1          |104     |2023-01-05|ID |TH  |
-|2          |105     |2023-01-01|SG |US  |
-|2          |106     |2023-01-02|HK |UK  |
-|2          |107     |2023-01-03|FR |TH  |
-|2          |108     |2023-01-04|IT |MY  |
-+-----------+--------+----------+---+----+
+
+
+===sample flight data ===
++-------------+----------+------+----+------------+
+| passengerId | flightId | from | to |    date    |
++-------------+----------+------+----+------------+
+|      1      |   100    | UK   | FR | 1/1/2023   |
+|      1      |   101    | US   | CN | 1/2/2023   |
+|      1      |   102    | UK   | DE | 1/3/2023   |
+|      1      |   103    | UK   | CN | 1/4/2023   |
+|      2      |   105    | SG   | US | 1/1/2023   |
+|      2      |   106    | US   | UK | 1/2/2023   |
+|      2      |   107    | FR   | TH | 1/3/2023   |
+|      2      |   108    | IT   | MY | 1/4/2023   |
++-------------+----------+------+----+------------+
+	
+combine *from and to* into Country	
+PassengerId: 1, Country: UK, date: 1/1/2023
+PassengerId: 1, Country: FR, date: 1/1/2023
+PassengerId: 1, Country: US, date: 1/2/2023
+PassengerId: 1, Country: CN, date: 1/2/2023
+PassengerId: 1, Country: UK, date: 1/3/2023
+PassengerId: 1, Country: DE, date: 1/3/2023
+PassengerId: 1, Country: UK, date: 1/4/2023
+PassengerId: 1, Country: CN, date: 1/4/2023
+PassengerId: 2, Country: SG, date: 1/1/2023
+PassengerId: 2, Country: US, date: 1/1/2023
+PassengerId: 2, Country: US, date: 1/2/2023
+PassengerId: 2, Country: UK, date: 1/2/2023
+PassengerId: 2, Country: FR, date: 1/3/2023
+PassengerId: 2, Country: TH, date: 1/3/2023
+PassengerId: 2, Country: IT, date: 1/4/2023
+PassengerId: 2, Country: MY, date: 1/4/2023
+
 ---
+  
+  *continuesly uninterrupted by UK*
+  PassengerId: 2, count: 4(FR,TH,IT,MY)
+  PassengerId: 2, count: 3(FR,US,CN)
+  
+=== Result Data ===
+Passenger: 2, Number of Flights: 4
+Passenger: 1, Number of Flights: 3
 
-=== Result Dataset ===
-+-------------+-------------+
-| passengerId | Longest run |
-+-------------+-------------+
-|           1 |           2 |  
-|           2 |           2 |
-+-------------+-------------+
+=== Expected Data ===
+Passenger: 2, Number of Flights: 4
+Passenger: 1, Number of Flights: 3
 
-=== Expected Dataset ===
-+-------------+-------------+
-| passengerId | Longest run |
-+-------------+-------------+
-|           1 |           2 |  
-|           2 |           2 |
-+-------------+-------------+
 
 **testing result:Matched**
 ---
