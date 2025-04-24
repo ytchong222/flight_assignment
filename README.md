@@ -302,7 +302,7 @@ PassengerId: 2, Country: MY, date: 1/4/2023
   
   *continuesly uninterrupted by UK*
   PassengerId: 2, count: 4(FR,TH,IT,MY)
-  PassengerId: 2, count: 3(FR,US,CN)
+  PassengerId: 1, count: 3(FR,US,CN)
   
 === Result Data ===
 Passenger: 2, Number of Flights: 4
