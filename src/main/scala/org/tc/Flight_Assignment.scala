@@ -1,6 +1,5 @@
 package org.tc
 import org.apache.spark.sql.{Dataset, SparkSession}
-import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.log4j.{Level, Logger}
 
@@ -62,9 +61,9 @@ object Flight_Assignment {
    * Question 1: Find the total number of flights for each month
    * This aggregates flight records by month to provide monthly counts.
    * @param flightData - DataFrame with flight data logs
-   * @return DataFrame with two columns: Month and Number of Flights
+   * @return with two columns: Month and Number of Flights
    *         Summary Steps
-   *         step 1: select only the required "date" column
+   *         step 1: select only the required "date" and flightId column
    *         step 2: extract the month from the date
    *         step 3: group by month and count distinct flightId
    *         step 4: order by month accending
@@ -72,40 +71,45 @@ object Flight_Assignment {
   def totalFlightsPerMonth(flights: Seq[FlightData]): Seq[MonthlyFlights] = {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-    // Step 1: Filter out duplicate flight IDs (use distinctBy in Scala 2.13+)
-    val distinctFlights: Seq[FlightData] = flights.groupBy(_.flightId).map(_._2.head).toSeq
+    println("Source Flights:")
+    flights.foreach(flight =>
+      println(s"Flight ID: ${flight.flightId}, Date: ${flight.date}, Passenger ID: ${flight.passengerId}")
+    )
 
-    // Step 2: Parse dates and extract months safely
-    val months: Seq[Int] = distinctFlights.flatMap { flight =>
-      Try(LocalDate.parse(flight.date, formatter).getMonthValue).toOption
+    // Step 1: Distinct by (flightId, date)
+    val distinctFlights: Seq[(Int, String)] = flights
+      .map(f => (f.flightId, f.date))
+      .distinct
+
+    println("Distinct Flights by (flightId, date):")
+    distinctFlights.foreach {
+      case (flightId, date) => println(s"Flight ID: $flightId, Date: $date")
     }
 
-    // Step 3: Group by month and count flights
+    // Step 2: Extract month from date
+    val months: Seq[Int] = distinctFlights.flatMap {
+      case (_, dateStr) => Try(LocalDate.parse(dateStr, formatter).getMonthValue).toOption
+    }
+
+    // Step 3: Group by month and count
     val groupedByMonth: Map[Int, Int] = months.groupBy(identity).map {
       case (month, flightsInMonth) => month -> flightsInMonth.size
     }
 
-    // Debug: Print the groupedByMonth
-    println(s"GroupedByMonth (distinct flightId): $groupedByMonth")
+    println("Grouped By Month:")
+    groupedByMonth.foreach {
+      case (month, count) => println(s"Month: $month -> Number of Flights: $count")
+    }
 
-    // Step 4: Map to MonthlyFlights case class
+    // Step 4: Map to case class
     val monthlyFlights: Seq[MonthlyFlights] = groupedByMonth.map {
-      case (month, numberOfFlights) =>
-        MonthlyFlights(`Month` = month, `Number of Flights` = numberOfFlights.toLong)
+      case (month, count) => MonthlyFlights(month, count.toLong)
     }.toSeq
 
-    // Step 5: Sort by Month
-    val sortedFlights: Seq[MonthlyFlights] = monthlyFlights.sortBy(_.`Month`)
-
-    // Debug: Print final result
-    println("Sorted Monthly Flights (distinct flightId):")
-    sortedFlights.foreach(flight =>
-      println(s"Month: ${flight.`Month`}, Number of Flights: ${flight.`Number of Flights`}")
-    )
-
-    // Step 6: Return the result
-    sortedFlights
+    // Step 5: Sort and return
+    monthlyFlights.sortBy(_.`Month`)
   }
+
 
   /**
    * Question 2: Find the 100 most frequent flyers
@@ -125,12 +129,20 @@ object Flight_Assignment {
     // Step 1:
     val selectedFlights = flights.select("passengerId", "flightId") // Keep only passengerId and flightId
     val selectedPassengers = passengers.select("passengerId", "firstName", "lastName") // Keep passengerId, firstName, and lastName
+    selectedFlights.show()
+    log.info("selectedFlights:\n" + selectedFlights.show(100, truncate = false))
 
+    selectedPassengers.show()
+    log.info("selectedPassengers:\n" + selectedPassengers.show(100, truncate = false))
     // Step 2:
     val aggregatedFlights = selectedFlights
       .groupBy("passengerId")
       .agg(count("flightId").as("Number of Flights"))
+      .orderBy(desc("Number of Flights"))
+      .limit(100)
 
+    aggregatedFlights.show()
+    log.info("selectedPassengers:\n" + aggregatedFlights.show(100, truncate = false))
     // Step 3:
     val result = aggregatedFlights
       .join(broadcast(selectedPassengers), "passengerId") // Join on passengerId
@@ -139,14 +151,13 @@ object Flight_Assignment {
         col("Number of Flights"),                   // Include Number of Flights as is
         col("firstName").as("First name"),         // Rename firstName to First Name
         col("lastName").as("Last name")          // Rename lastName to Last Name
-
       )
       .as[FrequentFlyer] // Map to FrequentFlyer case class
 
-      // Step 4:
-      .orderBy(desc("Number of Flights"))
-      .limit(100)
 
+
+    result.show()
+    log.info("result:\n" + result.show(100, truncate = false))
     result
   }
 
@@ -211,6 +222,8 @@ object Flight_Assignment {
         //if country =UK reset to 0
         if (country == "UK") {
           currentRun = 0
+          // **Reset case for UK**: Update `maxRun` in case the current run ends here
+          maxRun = math.max(maxRun, currentRun)
           prevCountry = Some("UK") //Assign prevCountry to UK
         } else if (prevCountry.contains(country)) {
           //  no increment due to same country with previous country
@@ -226,6 +239,9 @@ object Flight_Assignment {
    //Step 5
     longestRuns.toSeq
   }
+
+
+
 
   /**
    * Question 4: Find pairs of passengers who have been on more than 3 flights together.
@@ -244,6 +260,9 @@ object Flight_Assignment {
 
     // Step 1: Select only necessary columns and repartition by `flightId`
     val selectedColumns = flights.select("flightId", "passengerId","date").repartition(col("flightId"))
+    //debuging
+        selectedColumns.show()
+        log.info("selectedColumns:\n" + selectedColumns.show(200, truncate = false))
 
     // Step 2: Join the data on `flightId`, creating passenger pairs
     val passengerPairs = selectedColumns
@@ -254,15 +273,17 @@ object Flight_Assignment {
       )
       .filter(col("df1.passengerId") < col("df2.Passenger2Id")) // Ensure unique pairs (passengerId < Passenger2Id)
     //debuging
-    //    passengerPairs.show()
-    //    log.info("passengerPairs:\n" + passengerPairs.show(10, truncate = false))
+        passengerPairs.show()
+        log.info("passengerPairs:\n" + passengerPairs.show(100, truncate = false))
 
     // Step 3:
     val groupedPairs = passengerPairs
       .groupBy("df1.passengerId", "df2.Passenger2Id") // Group by the two passenger IDs
       .agg(count("*").as("Number of Flights Together")) // Count the number of shared flights
       .filter(col("Number of Flights Together") > 3) // Filter out pairs with <= 3 shared flights
-
+    //debuging
+    groupedPairs.show()
+    log.info("groupedPairs:\n" + groupedPairs.show(100, truncate = false))
     // Step 4:
     val result = groupedPairs
       .select(
@@ -304,6 +325,8 @@ object Flight_Assignment {
       .filter(col("date").between(from, to)) // Filter rows for the specified date range
       .select("flightId", "passengerId", "date") // Select only relevant columns
       .repartition(col("flightId")) // Repartition by `flightId` for optimized join performance
+        filteredFlights.show()
+        log.info("filteredFlights:\n" + filteredFlights.show(20, truncate = false))
 
     // Step 2:
     val passengerPairs = filteredFlights
@@ -315,6 +338,8 @@ object Flight_Assignment {
         col("df1.flightId") === col("df2.flightId") // Join on `flightId`
       )
       .filter(col("df1.passengerId") < col("df2.Passenger2Id")) // Ensure unique pairs (ascending order)
+    passengerPairs.show()
+    log.info("passengerPairs:\n" + passengerPairs.show(20, truncate = false))
 
     // Step 3:
     val groupedPairs = passengerPairs
@@ -327,8 +352,9 @@ object Flight_Assignment {
         min(col("df1.date")).as("From"), // Earliest date of the flights together
         max(col("df1.date")).as("To") // Latest date of the flights together
       )
-      .filter(col("Number of Flights Together") > atLeastNTimes) // Filter pairs flying together more than the threshold
-
+     // .filter(col("Number of Flights Together") > atLeastNTimes) // Filter pairs flying together more than the threshold
+    groupedPairs.show()
+    log.info("groupedPairs:\n" + groupedPairs.show(20, truncate = false))
     // Step 4-5:
     groupedPairs
       .select(
@@ -340,7 +366,11 @@ object Flight_Assignment {
       )
       .orderBy(asc("From"), asc("To")) // Sort by `From` and `To` dates in ascending order
       .as[FlightsTogetherWithRange] // Map to the case class
+
+
+
   }
+
   /**
    * Main function. Executes all analysis tasks and saves output as CSV files.
    */
@@ -369,64 +399,64 @@ object Flight_Assignment {
     // Validate schema
     validateSchema(flightSchema, flightData.schema)
     validateSchema(passengerSchema, passengers.schema)
-
-    // Question 1
-
-
-
-    // Step 2: Call the function
-    val totalFlights = totalFlightsPerMonth(flightData.collect().toSeq)
-    // debugging
-//    println("Final Output:")
-//    totalFlights.foreach(flight =>
-//      println(s"Month: ${flight.`Month`}, Number of Flights: ${flight.`Number of Flights`}")
-//    )
-    // Step 3: Convert to Dataset and write to CSV
-    val totalFlightsDS = totalFlights.toDS()
-    totalFlightsDS.write
-      .mode("overwrite")
-      .option("header", "true")
-      .csv(s"$outputDirectory/Q1_totalFlights")
-
-    println(s"Data successfully written to ${outputDirectory}/Q1_totalFlights")
-
-    // Question 2
-    val frequentFlyers = mostFrequentFlyers(flightData, passengers)
-    //val tableRequentFlyers = frequentFlyers.show(100, truncate = false) // Fetch first 100 rows as a string
-    // log.info("tableRequentFlyers:\n" + tableRequentFlyers) // Log the table
-    frequentFlyers.write.mode("overwrite").option("header", "true").csv(s"$outputDirectory/Q2_frequentFlyers")
-
-    // Question 3
-    val longestRun = longestRunWithoutUK(flightData.collect().toSeq)
-   //  debugging
-//        println("Final Output:")
-//        longestRun.foreach(flight =>
-//          println(s"Passenger ID: ${flight.`Passenger ID`}, Longest Run: ${flight.`Longest Run`}")
-//        )
-
-    val longestRunDS = longestRun.toDS()
-    longestRunDS.write
-      .mode("overwrite")
-      .option("header", "true")
-      .csv(s"$outputDirectory/Q3_longestRun")
-
-    println(s"Data successfully written to ${outputDirectory}/Q3_longestRun")
-
-    // Question 4
+//
+//    // Question 1
+//
+//
+//
+//    // Step 2: Call the function
+//    val totalFlights = totalFlightsPerMonth(flightData.collect().toSeq)
+//    // debugging
+////    println("Final Output:")
+////    totalFlights.foreach(flight =>
+////      println(s"Month: ${flight.`Month`}, Number of Flights: ${flight.`Number of Flights`}")
+////    )
+//    // Step 3: Convert to Dataset and write to CSV
+//    val totalFlightsDS = totalFlights.toDS()
+//    totalFlightsDS.write
+//      .mode("overwrite")
+//      .option("header", "true")
+//      .csv(s"$outputDirectory/Q1_totalFlights")
+//
+//    println(s"Data successfully written to ${outputDirectory}/Q1_totalFlights")
+//
+//    // Question 2
+//    val frequentFlyers = mostFrequentFlyers(flightData, passengers)
+//    //val tableRequentFlyers = frequentFlyers.show(100, truncate = false) // Fetch first 100 rows as a string
+//    // log.info("tableRequentFlyers:\n" + tableRequentFlyers) // Log the table
+//    frequentFlyers.write.mode("overwrite").option("header", "true").csv(s"$outputDirectory/Q2_frequentFlyers")
+//
+//    // Question 3
+//    val longestRun = longestRunWithoutUK(flightData.collect().toSeq)
+//   //  debugging
+////        println("Final Output:")
+////        longestRun.foreach(flight =>
+////          println(s"Passenger ID: ${flight.`Passenger ID`}, Longest Run: ${flight.`Longest Run`}")
+////        )
+//
+//    val longestRunDS = longestRun.toDS()
+//    longestRunDS.write
+//      .mode("overwrite")
+//      .option("header", "true")
+//      .csv(s"$outputDirectory/Q3_longestRun")
+//
+//    println(s"Data successfully written to ${outputDirectory}/Q3_longestRun")
+//
+//    // Question 4
     val togetherMoreThan3 = flightsTogether(flightData)
     //      val tabletogetherMoreThan3 = togetherMoreThan3.show(10, truncate = false) // Fetch first 10 rows as a string
     //      log.info("tablelongestRunWithoutUK:\n" + tabletogetherMoreThan3) // Log the table
     togetherMoreThan3.write.mode("overwrite").option("header", "true").csv(s"$outputDirectory/Q4_flightsTogether")
 
     // Extra Task
-    val fromDate = Date.valueOf(LocalDate.parse("2017-01-01"))
-    val toDate = Date.valueOf(LocalDate.parse("2017-12-31"))
-    val togetherInRange = flownTogetherWithinRange(flightData, 3, fromDate, toDate)
-
-    //    val tableTogetherInRange = togetherInRange.show(10, truncate = false) // Fetch first 10 rows as a string
-    //    log.info("tableTogetherInRange:\n" + tableTogetherInRange) // Log the table
-
-    togetherInRange.write.mode("overwrite").option("header", "true").csv(s"$outputDirectory/Extra_flightsTogetherInRange")
+//    val fromDate = Date.valueOf(LocalDate.parse("2017-01-01"))
+//    val toDate = Date.valueOf(LocalDate.parse("2017-12-31"))
+//    val togetherInRange = flownTogetherWithinRange(flightData, 3, fromDate, toDate)
+//
+//    //    val tableTogetherInRange = togetherInRange.show(10, truncate = false) // Fetch first 10 rows as a string
+//    //    log.info("tableTogetherInRange:\n" + tableTogetherInRange) // Log the table
+//
+//    togetherInRange.write.mode("overwrite").option("header", "true").csv(s"$outputDirectory/Extra_flightsTogetherInRange")
 
     // free up the memory after use
     flightData.unpersist()
