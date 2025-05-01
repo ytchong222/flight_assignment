@@ -63,28 +63,29 @@ object Flight_Assignment {
    * @param flightData - DataFrame with flight data logs
    * @return with two columns: Month and Number of Flights
    *         Summary Steps
-   *         step 1: select only the required "date" and flightId column
-   *         step 2: extract the month from the date
-   *         step 3: group by month and count distinct flightId
-   *         step 4: order by month accending
+   *         step 1:  Distinct by (flightId, date)
+   *         step 2: Extract month from date
+   *         step 3: Group by month and count
+   *         step 4: Map to case class
+   *         step 5: Sort and return
    */
   def totalFlightsPerMonth(flights: Seq[FlightData]): Seq[MonthlyFlights] = {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-    println("Source Flights:")
-    flights.foreach(flight =>
-      println(s"Flight ID: ${flight.flightId}, Date: ${flight.date}, Passenger ID: ${flight.passengerId}")
-    )
+//    println("Source Flights:")
+//    flights.foreach(flight =>
+//      println(s"Flight ID: ${flight.flightId}, Date: ${flight.date}, Passenger ID: ${flight.passengerId}")
+//    )
 
     // Step 1: Distinct by (flightId, date)
     val distinctFlights: Seq[(Int, String)] = flights
       .map(f => (f.flightId, f.date))
       .distinct
 
-    println("Distinct Flights by (flightId, date):")
-    distinctFlights.foreach {
-      case (flightId, date) => println(s"Flight ID: $flightId, Date: $date")
-    }
+//    println("Distinct Flights")
+//    distinctFlights.foreach {
+//      case (flightId, date) => println(s"Flight ID: $flightId, Date: $date")
+//    }
 
     // Step 2: Extract month from date
     val months: Seq[Int] = distinctFlights.flatMap {
@@ -96,10 +97,10 @@ object Flight_Assignment {
       case (month, flightsInMonth) => month -> flightsInMonth.size
     }
 
-    println("Grouped By Month:")
-    groupedByMonth.foreach {
-      case (month, count) => println(s"Month: $month -> Number of Flights: $count")
-    }
+//    println("Grouped By Month:")
+//    groupedByMonth.foreach {
+//      case (month, count) => println(s"Month: $month -> Number of Flights: $count")
+//    }
 
     // Step 4: Map to case class
     val monthlyFlights: Seq[MonthlyFlights] = groupedByMonth.map {
