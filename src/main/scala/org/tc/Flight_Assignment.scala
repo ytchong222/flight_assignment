@@ -274,8 +274,8 @@ object Flight_Assignment {
     // Step 1: Select only necessary columns and repartition by `flightId`
     val selectedColumns = flights.select("flightId", "passengerId","date").repartition(col("flightId"))
     //debuging
-        selectedColumns.show()
-        log.info("selectedColumns:\n" + selectedColumns.show(200, truncate = false))
+      //  selectedColumns.show()
+       // log.info("selectedColumns:\n" + selectedColumns.show(200, truncate = false))
 
     // Step 2: Join the data on `flightId`, creating passenger pairs
     val passengerPairs = selectedColumns
@@ -338,8 +338,9 @@ object Flight_Assignment {
       .filter(col("date").between(from, to)) // Filter rows for the specified date range
       .select("flightId", "passengerId", "date") // Select only relevant columns
       .repartition(col("flightId")) // Repartition by `flightId` for optimized join performance
-        filteredFlights.show()
-        log.info("filteredFlights:\n" + filteredFlights.show(20, truncate = false))
+    //debugging
+    //filteredFlights.show()
+    //log.info("filteredFlights:\n" + filteredFlights.show(20, truncate = false))
 
     // Step 2:
     val passengerPairs = filteredFlights
@@ -351,8 +352,9 @@ object Flight_Assignment {
         col("df1.flightId") === col("df2.flightId") // Join on `flightId`
       )
       .filter(col("df1.passengerId") < col("df2.Passenger2Id")) // Ensure unique pairs (ascending order)
-    passengerPairs.show()
-    log.info("passengerPairs:\n" + passengerPairs.show(20, truncate = false))
+    //debugging
+    //passengerPairs.show()
+   //log.info("passengerPairs:\n" + passengerPairs.show(20, truncate = false))
 
     // Step 3:
     val groupedPairs = passengerPairs
@@ -365,9 +367,9 @@ object Flight_Assignment {
         min(col("df1.date")).as("From"), // Earliest date of the flights together
         max(col("df1.date")).as("To") // Latest date of the flights together
       )
-     // .filter(col("Number of Flights Together") > atLeastNTimes) // Filter pairs flying together more than the threshold
-    groupedPairs.show()
-    log.info("groupedPairs:\n" + groupedPairs.show(20, truncate = false))
+      .filter(col("Number of Flights Together") > atLeastNTimes) // Filter pairs flying together more than the threshold
+    //groupedPairs.show()
+    //log.info("groupedPairs:\n" + groupedPairs.show(20, truncate = false))
     // Step 4-5:
     groupedPairs
       .select(
@@ -414,62 +416,44 @@ object Flight_Assignment {
     validateSchema(passengerSchema, passengers.schema)
 //
 //    // Question 1
-//
-//
-//
-//    // Step 2: Call the function
-//    val totalFlights = totalFlightsPerMonth(flightData.collect().toSeq)
-//    // debugging
-////    println("Final Output:")
-////    totalFlights.foreach(flight =>
-////      println(s"Month: ${flight.`Month`}, Number of Flights: ${flight.`Number of Flights`}")
-////    )
-//    // Step 3: Convert to Dataset and write to CSV
-//    val totalFlightsDS = totalFlights.toDS()
-//    totalFlightsDS.write
-//      .mode("overwrite")
-//      .option("header", "true")
-//      .csv(s"$outputDirectory/Q1_totalFlights")
-//
-//    println(s"Data successfully written to ${outputDirectory}/Q1_totalFlights")
-//
-//    // Question 2
-//    val frequentFlyers = mostFrequentFlyers(flightData, passengers)
-//    //val tableRequentFlyers = frequentFlyers.show(100, truncate = false) // Fetch first 100 rows as a string
-//    // log.info("tableRequentFlyers:\n" + tableRequentFlyers) // Log the table
-//    frequentFlyers.write.mode("overwrite").option("header", "true").csv(s"$outputDirectory/Q2_frequentFlyers")
-//
-//    // Question 3
-//    val longestRun = longestRunWithoutUK(flightData.collect().toSeq)
-//   //  debugging
-////        println("Final Output:")
-////        longestRun.foreach(flight =>
-////          println(s"Passenger ID: ${flight.`Passenger ID`}, Longest Run: ${flight.`Longest Run`}")
-////        )
-//
-//    val longestRunDS = longestRun.toDS()
-//    longestRunDS.write
-//      .mode("overwrite")
-//      .option("header", "true")
-//      .csv(s"$outputDirectory/Q3_longestRun")
-//
-//    println(s"Data successfully written to ${outputDirectory}/Q3_longestRun")
-//
-//    // Question 4
+    val totalFlights = totalFlightsPerMonth(flightData.collect().toSeq)
+    // debugging
+//    println("Final Output:")
+//    totalFlights.foreach(flight =>
+//      println(s"Month: ${flight.`Month`}, Number of Flights: ${flight.`Number of Flights`}")
+//    )
+   //Convert to Dataset and write to CSV
+    val totalFlightsDS = totalFlights.toDS()
+    totalFlightsDS.write
+      .mode("overwrite")
+      .option("header", "true")
+      .csv(s"$outputDirectory/Q1_totalFlights")
+
+    // Question 2
+    val frequentFlyers = mostFrequentFlyers(flightData, passengers)
+    frequentFlyers.write.mode("overwrite").option("header", "true").csv(s"$outputDirectory/Q2_frequentFlyers")
+
+    // Question 3
+    val longestRun = longestRunWithoutUK(flightData.collect().toSeq)
+    val longestRunDS = longestRun.toDS()
+    longestRunDS.write
+      .mode("overwrite")
+      .option("header", "true")
+      .csv(s"$outputDirectory/Q3_longestRun")
+
+    // Question 4
     val togetherMoreThan3 = flightsTogether(flightData)
-    //      val tabletogetherMoreThan3 = togetherMoreThan3.show(10, truncate = false) // Fetch first 10 rows as a string
-    //      log.info("tablelongestRunWithoutUK:\n" + tabletogetherMoreThan3) // Log the table
     togetherMoreThan3.write.mode("overwrite").option("header", "true").csv(s"$outputDirectory/Q4_flightsTogether")
 
     // Extra Task
-//    val fromDate = Date.valueOf(LocalDate.parse("2017-01-01"))
-//    val toDate = Date.valueOf(LocalDate.parse("2017-12-31"))
-//    val togetherInRange = flownTogetherWithinRange(flightData, 3, fromDate, toDate)
-//
-//    //    val tableTogetherInRange = togetherInRange.show(10, truncate = false) // Fetch first 10 rows as a string
-//    //    log.info("tableTogetherInRange:\n" + tableTogetherInRange) // Log the table
-//
-//    togetherInRange.write.mode("overwrite").option("header", "true").csv(s"$outputDirectory/Extra_flightsTogetherInRange")
+    val fromDate = Date.valueOf(LocalDate.parse("2017-01-01"))
+    val toDate = Date.valueOf(LocalDate.parse("2017-12-31"))
+    val togetherInRange = flownTogetherWithinRange(flightData, 3, fromDate, toDate)
+
+    //    val tableTogetherInRange = togetherInRange.show(10, truncate = false) // Fetch first 10 rows as a string
+    //    log.info("tableTogetherInRange:\n" + tableTogetherInRange) // Log the table
+
+    togetherInRange.write.mode("overwrite").option("header", "true").csv(s"$outputDirectory/Extra_flightsTogetherInRange")
 
     // free up the memory after use
     flightData.unpersist()
