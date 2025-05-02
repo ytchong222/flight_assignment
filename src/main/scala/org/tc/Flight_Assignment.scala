@@ -63,7 +63,7 @@ object Flight_Assignment {
    * @param flightData - DataFrame with flight data logs
    * @return with two columns: Month and Number of Flights
    *         Summary Steps
-   *         step 1:  Distinct by (flightId, date)
+   *         step 1: Group by flightId and date
    *         step 2: Extract month from date
    *         step 3: Group by month and count
    *         step 4: Map to case class
@@ -77,22 +77,21 @@ object Flight_Assignment {
 //      println(s"Flight ID: ${flight.flightId}, Date: ${flight.date}, Passenger ID: ${flight.passengerId}")
 //    )
 
-    // Step 1: Distinct by (flightId, date)
-    val distinctFlights: Seq[(Int, String)] = flights
-      .map(f => (f.flightId, f.date))
-      .distinct
+    // Step 1:
 
-//    println("Distinct Flights")
-//    distinctFlights.foreach {
-//      case (flightId, date) => println(s"Flight ID: $flightId, Date: $date")
-//    }
+    val distinctFlights: Seq[FlightData] = flights
+      .groupBy(flight => (flight.flightId, flight.date)) // Group by flightId and date
+      .map(_._2.head)                                   // Take the first flight in each group
+      .toSeq                                            // Convert back to Seq
 
-    // Step 2: Extract month from date
-    val months: Seq[Int] = distinctFlights.flatMap {
-      case (_, dateStr) => Try(LocalDate.parse(dateStr, formatter).getMonthValue).toOption
+    //distinctFlights.foreach(println)
+
+    // Step 2:
+    val months: Seq[Int] = distinctFlights.flatMap { flight =>
+      Try(LocalDate.parse(flight.date, formatter).getMonthValue).toOption
     }
 
-    // Step 3: Group by month and count
+    // Step 3:
     val groupedByMonth: Map[Int, Int] = months.groupBy(identity).map {
       case (month, flightsInMonth) => month -> flightsInMonth.size
     }
@@ -102,10 +101,15 @@ object Flight_Assignment {
 //      case (month, count) => println(s"Month: $month -> Number of Flights: $count")
 //    }
 
-    // Step 4: Map to case class
+    // Step 4:
     val monthlyFlights: Seq[MonthlyFlights] = groupedByMonth.map {
       case (month, count) => MonthlyFlights(month, count.toLong)
     }.toSeq
+
+
+//    monthlyFlights.foreach { flight =>
+//      println(s"Month: ${flight.Month}, Number of Flights: ${flight.`Number of Flights`}")
+//    }
 
     // Step 5: Sort and return
     monthlyFlights.sortBy(_.`Month`)
@@ -171,7 +175,7 @@ object Flight_Assignment {
    *         Step 2:  order by passengerId and date
    *         Step 3:  Group by passengerId
    *         Step 4: calculate longest run excluding UK and no duplicate consecutive countries
-   *                 -if country =UK reset to 0 and assign prevCountry to UK
+   *                 -if country =UK reset to 0 and assign prevCountry to UK and Update `maxRun` in case the current run ends here
    *                 -if current country = previous country do no nothing
    *                 -if <> UK and <> prevoius country increment 1,get the max count from maxRun/currentRun,
    *                    assign previous country to current country
@@ -197,8 +201,14 @@ object Flight_Assignment {
     val sortedFlightCountries = flightCountries
       .sortBy { case (passengerId, date, _) => (passengerId, date) }
 
+//    println(" sortedFlightCountries:")
+//    sortedFlightCountries.foreach { case (passengerId, date, country) =>
+//      println(s"Passenger: $passengerId, Date: $date, Country: $country")
+//    }
+
+
     // Step 3:
-    val countriesByPassenger = sortedFlightCountries.groupBy(_._1)
+    val countriesByPassenger = sortedFlightCountries.groupBy(_._1)//group by the passenger
     // Debugging
 //    println("Group countries by passenger:")
 //    countriesByPassenger.foreach { case (passengerId, trips) =>
@@ -218,12 +228,12 @@ object Flight_Assignment {
 
       for (country <- countrySequence) {
         // Debug: print current state before logic
-        //println(s"current country: $country | Previous: ${prevCountry.getOrElse("None")} | CurrentRun: $currentRun | MaxRun: $maxRun")
+        //println(s"passengerId:$passengerId | current country: $country | Previous: ${prevCountry.getOrElse("None")} | CurrentRun: $currentRun | MaxRun: $maxRun")
 
         //if country =UK reset to 0
         if (country == "UK") {
           currentRun = 0
-          // **Reset case for UK**: Update `maxRun` in case the current run ends here
+          // Update `maxRun` in case the current run ends here
           maxRun = math.max(maxRun, currentRun)
           prevCountry = Some("UK") //Assign prevCountry to UK
         } else if (prevCountry.contains(country)) {
@@ -233,6 +243,8 @@ object Flight_Assignment {
           maxRun = math.max(maxRun, currentRun) //the max count from maxRun/currentRun
           prevCountry = Some(country) //Assign previous country to current country
         }
+        println(s"passengerId:$passengerId | current country: $country | Previous: ${prevCountry.getOrElse("None")} | CurrentRun: $currentRun | MaxRun: $maxRun")
+
       }
 
       LongestRunResult(passengerId, maxRun)// return passengerId and the maxrun count
@@ -274,8 +286,8 @@ object Flight_Assignment {
       )
       .filter(col("df1.passengerId") < col("df2.Passenger2Id")) // Ensure unique pairs (passengerId < Passenger2Id)
     //debuging
-        passengerPairs.show()
-        log.info("passengerPairs:\n" + passengerPairs.show(100, truncate = false))
+//        passengerPairs.show()
+//        log.info("passengerPairs:\n" + passengerPairs.show(100, truncate = false))
 
     // Step 3:
     val groupedPairs = passengerPairs
