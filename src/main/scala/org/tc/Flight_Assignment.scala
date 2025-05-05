@@ -27,7 +27,7 @@ object Flight_Assignment {
     .master("local[*]") // Adjust cluster mode if needed
     .getOrCreate()
 
-  import spark.implicits._
+  import spark.implicits._  //global add on the implicit  functionality for working with Dataset and DataFrame operations in Spark
 
   /**
    * Define schemas for dataset validation
@@ -80,7 +80,7 @@ object Flight_Assignment {
     // Step 1:
 
     val distinctFlights: Seq[FlightData] = flights
-      .groupBy(flight => (flight.flightId, flight.date)) // Group by flightId and date
+      .groupBy(flight => (flight.flightId, flight.date)) // Group by flightId and date data mignt be same flight in the same day
       .map(_._2.head)                                   // Take the first flight in each group
       .toSeq                                            // Convert back to Seq
 
@@ -129,16 +129,16 @@ object Flight_Assignment {
    *
    */
   def mostFrequentFlyers(flights: Dataset[FlightData], passengers: Dataset[Passenger]): Dataset[FrequentFlyer] = {
-    import flights.sparkSession.implicits._
+   // import flights.sparkSession.implicits._
 
     // Step 1:
     val selectedFlights = flights.select("passengerId", "flightId") // Keep only passengerId and flightId
     val selectedPassengers = passengers.select("passengerId", "firstName", "lastName") // Keep passengerId, firstName, and lastName
-    selectedFlights.show()
-    log.info("selectedFlights:\n" + selectedFlights.show(100, truncate = false))
-
-    selectedPassengers.show()
-    log.info("selectedPassengers:\n" + selectedPassengers.show(100, truncate = false))
+//    selectedFlights.show()
+//    log.info("selectedFlights:\n" + selectedFlights.show(100, truncate = false))
+//
+//    selectedPassengers.show()
+//    log.info("selectedPassengers:\n" + selectedPassengers.show(100, truncate = false))
     // Step 2:
     val aggregatedFlights = selectedFlights
       .groupBy("passengerId")
@@ -146,8 +146,8 @@ object Flight_Assignment {
       .orderBy(desc("Number of Flights"))
       .limit(100)
 
-    aggregatedFlights.show()
-    log.info("selectedPassengers:\n" + aggregatedFlights.show(100, truncate = false))
+//    aggregatedFlights.show()
+//    log.info("selectedPassengers:\n" + aggregatedFlights.show(100, truncate = false))
     // Step 3:
     val result = aggregatedFlights
       .join(broadcast(selectedPassengers), "passengerId") // Join on passengerId
@@ -161,8 +161,8 @@ object Flight_Assignment {
 
 
 
-    result.show()
-    log.info("result:\n" + result.show(100, truncate = false))
+//    result.show()
+//    log.info("result:\n" + result.showString(100, truncate = false))
     result
   }
 
@@ -269,7 +269,7 @@ object Flight_Assignment {
    *         Step 4: select and rename columns and sort by the number of shared flights desc
    */
   def flightsTogether(flights: Dataset[FlightData]): Dataset[FlightsTogetherResult] = {
-    import flights.sparkSession.implicits._
+   // import flights.sparkSession.implicits._
 
     // Step 1: Select only necessary columns and repartition by `flightId`
     val selectedColumns = flights.select("flightId", "passengerId","date").repartition(col("flightId"))
@@ -295,8 +295,8 @@ object Flight_Assignment {
       .agg(count("*").as("Number of Flights Together")) // Count the number of shared flights
       .filter(col("Number of Flights Together") > 3) // Filter out pairs with <= 3 shared flights
     //debuging
-    groupedPairs.show()
-    log.info("groupedPairs:\n" + groupedPairs.show(100, truncate = false))
+//    groupedPairs.show()
+//    log.info("groupedPairs:\n" + groupedPairs.show(100, truncate = false))
     // Step 4:
     val result = groupedPairs
       .select(
@@ -331,7 +331,11 @@ object Flight_Assignment {
                                 from: Date,
                                 to: Date
                               ): Dataset[FlightsTogetherWithRange] = {
-    import flights.sparkSession.implicits._
+    //import flights.sparkSession.implicits._
+
+    //debugging
+//    flights.show()
+//    log.info("flights:\n" + flights.show(20, truncate = false))
 
     // Step 1:
     val filteredFlights = flights
@@ -412,11 +416,11 @@ object Flight_Assignment {
       .persist()
 
     // Validate schema
-    validateSchema(flightSchema, flightData.schema)
+    validateSchema(flightSchema, flightData.schema)//flightData.schema spark will auto infer data type from the source content
     validateSchema(passengerSchema, passengers.schema)
 //
 //    // Question 1
-    val totalFlights = totalFlightsPerMonth(flightData.collect().toSeq)
+    val totalFlights = totalFlightsPerMonth(flightData.collect().toSeq)//collect() for small dataset
     // debugging
 //    println("Final Output:")
 //    totalFlights.foreach(flight =>
@@ -434,7 +438,7 @@ object Flight_Assignment {
     frequentFlyers.write.mode("overwrite").option("header", "true").csv(s"$outputDirectory/Q2_frequentFlyers")
 
     // Question 3
-    val longestRun = longestRunWithoutUK(flightData.collect().toSeq)
+    val longestRun = longestRunWithoutUK(flightData.collect().toSeq)//collect() for small dataset
     val longestRunDS = longestRun.toDS()
     longestRunDS.write
       .mode("overwrite")
