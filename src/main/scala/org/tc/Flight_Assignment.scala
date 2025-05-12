@@ -92,20 +92,11 @@ object Flight_Assignment {
     }
 
     // Step 3:
-    val groupedByMonth: Map[Int, Int] = months.groupBy(identity).map {
-      case (month, flightsInMonth) => month -> flightsInMonth.size
-    }
 
-//    println("Grouped By Month:")
-//    groupedByMonth.foreach {
-//      case (month, count) => println(s"Month: $month -> Number of Flights: $count")
-//    }
-
-    // Step 4:
-    val monthlyFlights: Seq[MonthlyFlights] = groupedByMonth.map {
-      case (month, count) => MonthlyFlights(month, count.toLong)
-    }.toSeq
-
+    val monthlyFlights: Seq[MonthlyFlights] = months
+      .groupBy(identity)
+      .map { case (month, flightsInMonth) => MonthlyFlights(month, flightsInMonth.size.toLong) }
+      .toSeq
 
 //    monthlyFlights.foreach { flight =>
 //      println(s"Month: ${flight.Month}, Number of Flights: ${flight.`Number of Flights`}")
@@ -209,14 +200,7 @@ object Flight_Assignment {
 
     // Step 3:
     val countriesByPassenger = sortedFlightCountries.groupBy(_._1)//group by the passenger
-    // Debugging
-//    println("Group countries by passenger:")
-//    countriesByPassenger.foreach { case (passengerId, trips) =>
-//      println(s"Passenger ID: $passengerId")
-//      trips.foreach { case (_, date, country) =>
-//        println(s"  Date: $date, Country: $country")
-//      }
-//    }
+
     // Step 4:
     val longestRuns = countriesByPassenger.map { case (passengerId, trips) =>
       // Get ordered sequence of countries for this passenger
